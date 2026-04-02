@@ -1,4 +1,5 @@
 # 🥦 AI & IoT Solutions for Food Freshness & Safety
+📄 **[View Full Project Report](docs/project_report.pdf)**
 
 <p align="center">
   <img src="https://img.shields.io/badge/Accuracy-97.25%25-brightgreen?style=for-the-badge"/>
