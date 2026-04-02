@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Freshness Monitor | SRMIST 2025</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f1923;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a2a3a, #0d2137);
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #00bcd4;
+      box-shadow: 0 4px 20px rgba(0,188,212,0.15);
+    }
+    header h1 { font-size: 1.3rem; color: #00bcd4; font-weight: 700; }
+    header p  { font-size: 0.8rem; color: #90a4ae; }
+    .badge {
+      background: #00bcd4; color: #000; padding: 4px 12px;
+      border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+    }
+
+    /* ── Layout ── */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      padding: 28px 32px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+    /* ── Cards ── */
+    .card {
+      background: #1a2a3a;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #263545;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .card h2 {
+      font-size: 1rem; color: #00bcd4; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── Upload Zone ── */
+    .upload-zone {
+      border: 2px dashed #37474f;
+      border-radius: 12px;
+      padding: 36px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #0f1923;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #00bcd4;
+      background: rgba(0,188,212,0.05);
+    }
+    .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+    .upload-zone p { color: #78909c; font-size: 0.9rem; }
+    .upload-zone input { display: none; }
+
+    .btn {
+      background: linear-gradient(135deg, #00bcd4, #0097a7);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,188,212,0.4); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ── Preview Image ── */
+    #preview-wrap { display: none; margin-top: 16px; text-align: center; }
+    #preview-img  { max-height: 200px; border-radius: 10px; border: 2px solid #263545; }
+
+    /* ── Result Card ── */
+    #result-box {
+      display: none;
+      background: #0f1923;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+      border-left: 4px solid #4CAF50;
+      transition: all 0.4s;
+    }
+    #result-label { font-size: 1.8rem; font-weight: 700; }
+    #result-conf  { font-size: 0.9rem; color: #90a4ae; margin-top: 4px; }
+    #result-advice { margin-top: 10px; font-size: 0.85rem; color: #b0bec5; line-height: 1.6; }
+
+    /* ── Probability Bars ── */
+    .prob-bar-wrap { margin-top: 16px; }
+    .prob-item { margin-bottom: 10px; }
+    .prob-label { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 4px; }
+    .prob-track { background: #263545; border-radius: 4px; height: 8px; overflow: hidden; }
+    .prob-fill  { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+
+    /* ── Sensor Panel ── */
+    .sensor-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .sensor-item {
+      background: #0f1923;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid #263545;
+      transition: border-color 0.3s;
+    }
+    .sensor-item.alert { border-color: #f44336; background: rgba(244,67,54,0.05); }
+    .sensor-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .sensor-val  { font-size: 1.5rem; font-weight: 700; color: #00bcd4; }
+    .sensor-val.alert-val { color: #f44336; }
+    .sensor-name { font-size: 0.75rem; color: #78909c; margin-top: 4px; }
+    .sensor-status { font-size: 0.7rem; margin-top: 6px; padding: 2px 8px;
+                     border-radius: 10px; display: inline-block; }
+    .status-ok    { background: rgba(76,175,80,0.2);  color: #4CAF50; }
+    .status-alert { background: rgba(244,67,54,0.2);  color: #f44336; }
+
+    /* ── Alert Banner ── */
+    #alert-banner {
+      display: none;
+      background: rgba(244,67,54,0.15);
+      border: 1px solid #f44336;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: #ef9a9a;
+    }
+
+    /* ── Timestamp ── */
+    .timestamp { font-size: 0.75rem; color: #546e7a; margin-top: 12px; text-align: right; }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      display: none;
+      width: 32px; height: 32px;
+      border: 3px solid #263545;
+      border-top-color: #00bcd4;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 16px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #546e7a;
+      font-size: 0.78rem;
+      border-top: 1px solid #263545;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🥦 Food Freshness Monitor</h1>
+    <p>AI + IoT Quality Control System — SRMIST Final Year Project 2025</p>
+  </div>
+  <span class="badge">LIVE</span>
+</header>
+
+<main>
+
+  <!-- ── LEFT: Image Upload & Prediction ── -->
+  <div class="card">
+    <h2>📷 Image Freshness Detection</h2>
+
+    <div class="upload-zone" id="upload-zone">
+      <div class="icon">🖼️</div>
+      <p>Drag & drop a food image here<br>or click to browse</p>
+      <input type="file" id="file-input" accept="image/*"/>
+    </div>
+
+    <div id="preview-wrap">
+      <img id="preview-img" src="" alt="Preview"/>
+    </div>
+
+    <button class="btn" id="predict-btn" disabled>🔍 Analyse Freshness</button>
+    <div class="spinner" id="spinner"></div>
+
+    <div id="result-box">
+      <div id="result-label">—</div>
+      <div id="result-conf">—</div>
+      <div id="result-advice">—</div>
+
+      <div class="prob-bar-wrap" id="prob-bars"></div>
+      <div class="timestamp" id="result-time"></div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT: IoT Sensor Dashboard ── -->
+  <div class="card">
+    <h2>📡 Live IoT Sensor Readings</h2>
+
+    <div id="alert-banner">🚨 <strong>Alert:</strong> Environmental threshold exceeded! Inspect storage immediately.</div>
+
+    <div class="sensor-grid">
+      <div class="sensor-item" id="temp-card">
+        <div class="sensor-icon">🌡️</div>
+        <div class="sensor-val" id="temp-val">--</div>
+        <div class="sensor-name">Temperature (°C)</div>
+        <div class="sensor-status status-ok" id="temp-status">OK</div>
+      </div>
+      <div class="sensor-item" id="hum-card">
+        <div class="sensor-icon">💧</div>
+        <div class="sensor-val" id="hum-val">--</div>
+        <div class="sensor-name">Humidity (%)</div>
+        <div class="sensor-status status-ok" id="hum-status">OK</div>
+      </div>
+      <div class="sensor-item" id="gas-card">
+        <div class="sensor-icon">💨</div>
+        <div class="sensor-val" id="gas-val">--</div>
+        <div class="sensor-name">Gas Level (ppm)</div>
+        <div class="sensor-status status-ok" id="gas-status">OK</div>
+      </div>
+    </div>
+
+    <div class="timestamp" id="sensor-time">Last updated: --</div>
+
+    <!-- Thresholds reference -->
+    <div style="margin-top: 20px; padding: 14px; background: #0f1923; border-radius: 10px; font-size: 0.78rem; color: #78909c;">
+      <strong style="color: #90a4ae;">⚙️ Alert Thresholds:</strong><br>
+      Temperature &gt; 30°C &nbsp;|&nbsp; Humidity &gt; 85% &nbsp;|&nbsp; Gas Level &gt; 400 ppm
+    </div>
+
+    <div style="margin-top: 20px; padding: 14px; background: #0f1923; border-radius: 10px; font-size: 0.78rem; color: #78909c;">
+      <strong style="color: #90a4ae;">📋 About This System:</strong><br>
+      Uses <strong>ShuffleNet CNN</strong> (97.25% accuracy) + ESP8266 IoT sensors
+      (DHT11 + MQ135). Data published via MQTT to Adafruit IO cloud.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Kirthic Madavan S &nbsp;|&nbsp; Raghul Siddarth C &nbsp;|&nbsp; Lavanyah B
+  &nbsp;—&nbsp; SRMIST Final Year Project 2025 &nbsp;|&nbsp;
+  Published at ICRCET-2025 (Scopus)
+</footer>
+
+<script>
+  // ── Upload & Preview ──────────────────────────────────────
+  const zone       = document.getElementById('upload-zone');
+  const fileInput  = document.getElementById('file-input');
+  const predictBtn = document.getElementById('predict-btn');
+  const previewWrap = document.getElementById('preview-wrap');
+  const previewImg  = document.getElementById('preview-img');
+  let selectedFile  = null;
+
+  zone.addEventListener('click', () => fileInput.click());
+
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault(); zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    handleFile(e.dataTransfer.files[0]);
+  });
+
+  fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+  function handleFile(file) {
+    if (!file || !file.type.startsWith('image/')) return;
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImg.src = e.target.result;
+      previewWrap.style.display = 'block';
+      predictBtn.disabled = false;
+      document.getElementById('result-box').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Predict ───────────────────────────────────────────────
+  predictBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    predictBtn.disabled = true;
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('result-box').style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('image', selectedFile);
+
+    try {
+      const res  = await fetch('/predict', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.error) {
+        alert('Error: ' + data.error);
+      } else {
+        showResult(data);
+      }
+    } catch (e) {
+      alert('Failed to connect to server.');
+    }
+
+    document.getElementById('spinner').style.display = 'none';
+    predictBtn.disabled = false;
+  });
+
+  function showResult(data) {
+    const box = document.getElementById('result-box');
+    box.style.display = 'block';
+    box.style.borderLeftColor = data.color;
+    box.style.background = data.bg + '22';
+
+    document.getElementById('result-label').innerHTML =
+      `${data.emoji} ${data.label}`;
+    document.getElementById('result-label').style.color = data.color;
+    document.getElementById('result-conf').textContent =
+      `Confidence: ${data.confidence}%`;
+    document.getElementById('result-advice').textContent = data.advice;
+    document.getElementById('result-time').textContent = data.timestamp;
+
+    // Probability bars
+    const colors = {'Fresh':'#4CAF50','Minor Defect':'#FFC107',
+                     'Major Defect':'#FF9800','Spoiled':'#F44336'};
+    const barsDiv = document.getElementById('prob-bars');
+    barsDiv.innerHTML = '<div style="font-size:0.8rem;color:#78909c;margin-bottom:8px;">All class probabilities:</div>';
+
+    Object.entries(data.all_probs).forEach(([label, pct]) => {
+      barsDiv.innerHTML += `
+        <div class="prob-item">
+          <div class="prob-label"><span>${label}</span><span>${pct}%</span></div>
+          <div class="prob-track">
+            <div class="prob-fill" style="width:${pct}%;background:${colors[label]||'#00bcd4'}"></div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // ── Live Sensor Updates ───────────────────────────────────
+  async function updateSensors() {
+    try {
+      const res  = await fetch('/api/sensor');
+      const data = await res.json();
+
+      setVal('temp', data.temperature, '°C', data.temp_status);
+      setVal('hum',  data.humidity,    '%',  data.hum_status);
+      setVal('gas',  data.gas_level,   ' ppm', data.gas_status);
+
+      document.getElementById('sensor-time').textContent =
+        `Last updated: ${data.timestamp}`;
+
+      const banner = document.getElementById('alert-banner');
+      banner.style.display = data.any_alert ? 'block' : 'none';
+    } catch (e) {
+      console.warn('Sensor fetch failed:', e);
+    }
+  }
+
+  function setVal(prefix, value, unit, status) {
+    const valEl    = document.getElementById(`${prefix}-val`);
+    const statusEl = document.getElementById(`${prefix}-status`);
+    const cardEl   = document.getElementById(`${prefix}-card`);
+
+    valEl.textContent = value + unit;
+    const isAlert = status === 'ALERT';
+    valEl.className   = 'sensor-val' + (isAlert ? ' alert-val' : '');
+    statusEl.textContent = isAlert ? '⚠️ ALERT' : '✅ OK';
+    statusEl.className   = 'sensor-status ' + (isAlert ? 'status-alert' : 'status-ok');
+    cardEl.className     = 'sensor-item' + (isAlert ? ' alert' : '');
+  }
+
+  // Poll sensors every 10 seconds
+  updateSensors();
+  setInterval(updateSensors, 10000);
+</script>
+
+</body>
+</html>

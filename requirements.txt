@@ -1,12 +1,31 @@
+# ================================================================
+# requirements.txt — Python Dependencies
+# AI & IoT Food Freshness & Safety System
+# ================================================================
+# Install with: pip install -r requirements.txt
+
+# Deep Learning
 tensorflow>=2.10.0
 keras>=2.10.0
+
+# Data & Image Processing
 numpy>=1.23.0
-matplotlib>=3.6.0
 Pillow>=9.0.0
+opencv-python>=4.6.0
+
+# Visualisation
+matplotlib>=3.6.0
+seaborn>=0.12.0
+
+# Machine Learning utilities
 scikit-learn>=1.1.0
 pandas>=1.5.0
+
+# Web Application
 Flask>=2.2.0
+
+# IoT / MQTT
 paho-mqtt>=1.6.0
-opencv-python>=4.6.0
+
+# Dataset utilities
 glob2>=0.7
-warnings
