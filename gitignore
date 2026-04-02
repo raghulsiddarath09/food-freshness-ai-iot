@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Model weights (too large for GitHub)
+*.h5
+*.pkl
+*.model
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Dataset images (add your own)
+dataset/train/
+dataset/test/
+
+# Environment variables / credentials
+.env
+config.h
+secrets.py
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
